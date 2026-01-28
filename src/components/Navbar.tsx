@@ -1,9 +1,13 @@
+"use client";
+
 import Link from 'next/link';
-import { LayoutDashboard, Users, MessageSquare, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, MessageSquare, Menu, X, LogOut, LogIn } from 'lucide-react';
 import { useState } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const { data: session } = useSession();
 
     const navLinks = [
         { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -36,9 +40,34 @@ const Navbar = () => {
                                 <span>{link.label}</span>
                             </Link>
                         ))}
-                        <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
-                            <span className="text-xs font-semibold text-accent-foreground">AK</span>
-                        </div>
+
+                        {session ? (
+                            <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-2">
+                                    <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
+                                        <span className="text-xs font-semibold text-accent-foreground">
+                                            {session.user?.name?.[0]?.toUpperCase() || 'U'}
+                                        </span>
+                                    </div>
+                                    <span className="text-sm font-medium text-foreground">{session.user?.name}</span>
+                                </div>
+                                <button
+                                    onClick={() => signOut()}
+                                    className="p-2 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                    title="Sign Out"
+                                >
+                                    <LogOut size={18} />
+                                </button>
+                            </div>
+                        ) : (
+                            <Link
+                                href="/auth/signin"
+                                className="flex items-center space-x-1 py-2 px-4 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-all"
+                            >
+                                <LogIn size={18} />
+                                <span>Sign In</span>
+                            </Link>
+                        )}
                     </div>
 
                     {/* Mobile menu button */}
@@ -68,6 +97,27 @@ const Navbar = () => {
                                 <span>{link.label}</span>
                             </Link>
                         ))}
+                        {session ? (
+                            <button
+                                onClick={() => {
+                                    setIsOpen(false);
+                                    signOut();
+                                }}
+                                className="w-full flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-destructive hover:bg-destructive/10 transition-colors text-left"
+                            >
+                                <LogOut size={20} />
+                                <span>Sign Out ({session.user?.name})</span>
+                            </button>
+                        ) : (
+                            <Link
+                                href="/auth/signin"
+                                onClick={() => setIsOpen(false)}
+                                className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-primary hover:bg-accent transition-colors"
+                            >
+                                <LogIn size={20} />
+                                <span>Sign In</span>
+                            </Link>
+                        )}
                     </div>
                 </div>
             )}
@@ -76,3 +126,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
